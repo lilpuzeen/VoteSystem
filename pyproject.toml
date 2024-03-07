@@ -1,0 +1,17 @@
+[project]
+name = "VoteSystem"
+authors = [
+    {name = "Arman Tovmasian", email = "armantovmasan14@gmail.com"},
+]
+description = "Poll's voting system"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+dynamic = ["version"]
+
+[project.optional-dependencies]
+test = []
+docs = []
+
+[tool.setuptools.dynamic]
+version = {file = "VERSION"}
