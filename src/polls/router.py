@@ -60,9 +60,9 @@ async def create_poll(
     return await poll_action.create(db=session, obj_in=new_poll_instance)
 
 
-@router_polls.get("/{poll_id}", response_model=schema.ReadPoll)
+@router_polls.get("/{poll_id}")
 async def get_poll(poll_id: int, session: AsyncSession = Depends(get_async_session)):
-    pass
+    return await poll_action.get_poll_with_questions(db=session, id=poll_id)
 
 
 @router_questions.post("/{poll_id}")
@@ -79,6 +79,11 @@ async def create_question(
     return await question_action.create(db=session, obj_in=new_question_instance)
 
 
+@router_questions.get("/{question_id}")
+async def get_question(question_id: int, session: AsyncSession = Depends(get_async_session)):
+    return await question_action.get_question_with_choices(db=session, id=question_id)
+
+
 @router_choices.post("/{question_id}")
 async def create_choice(
         question_id: int,
@@ -93,6 +98,7 @@ async def create_choice(
     return await choice_action.create(db=session, obj_in=new_choice_instance)
 
 
+# TODO: handle multiple votes from the same user on the same choice
 @router_votes.post("/{choice_id}")
 async def create_vote(
         choice_id: int,

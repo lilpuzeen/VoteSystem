@@ -26,5 +26,5 @@ app.include_router(router_choices)
 app.include_router(router_votes)
 
 
-if __name__ == '__main__':
-    uvicorn.run(app)
+# if __name__ == '__main__':
+#     uvicorn.run(app)

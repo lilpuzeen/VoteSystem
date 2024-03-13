@@ -7,7 +7,7 @@ from src.auth.schemas import UserRead
 
 class CustomUserDatabase(SQLAlchemyUserDatabase):
 	"""
-	Класс для работы с базой данных пользователей, расширенный методом поиска по username.
+	Extend the SQLAlchemyUserDatabase to add custom methods.
 	"""
 
 	def __init__(self, session, user_table) -> None:

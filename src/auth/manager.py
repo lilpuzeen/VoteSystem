@@ -20,7 +20,7 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
         super().__init__(user_db, *args, **kwargs)
 
     async def on_after_register(self, user: User, request: Optional[Request] = None):
-        # TODO: add email verification
+        # TODO: add email confirmation
         print(f"User {user.username} has registered.")
 
     async def authenticate(

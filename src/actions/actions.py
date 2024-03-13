@@ -6,6 +6,7 @@ from fastapi import Depends, HTTPException
 
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
+from sqlalchemy.orm import selectinload
 
 from src.database import Base, get_async_session
 from src.auth.utils import map_to_datetime
@@ -44,6 +45,46 @@ class BaseActions(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             obj = result.scalars().first()
             if obj:
                 return obj
+            else:
+                raise HTTPException(status_code=404, detail=f"Object with ID {id} not found.")
+
+    async def get_poll_with_questions(self, id: int, db: AsyncSession = Depends(get_async_session)) -> Optional[ModelType]:
+        async with db as session:
+            query = (
+                select(self.model)
+                .filter(self.model.id == id)
+                .options(
+                    selectinload(models.Poll.questions)
+                    .selectinload(models.Question.choices)
+                )
+            )
+            result = await session.execute(query)
+            obj = result.scalars().first()
+            if obj:
+                obj_data = jsonable_encoder(obj)
+
+                for question in obj_data["questions"]:
+                    question.pop("poll_id", None)
+                return obj_data
+            else:
+                raise HTTPException(status_code=404, detail=f"Object with ID {id} not found.")
+
+    async def get_question_with_choices(self, id: int, db: AsyncSession = Depends(get_async_session)) -> Optional[ModelType]:
+        async with db as session:
+            query = (
+                select(self.model)
+                .filter(self.model.id == id)
+                .options(
+                    selectinload(models.Question.choices)
+                )
+            )
+            result = await session.execute(query)
+            obj = result.scalars().first()
+            if obj:
+                obj_data = jsonable_encoder(obj)
+                question_data = obj_data
+                question_data.pop("poll_id", None)
+                return question_data
             else:
                 raise HTTPException(status_code=404, detail=f"Object with ID {id} not found.")
 

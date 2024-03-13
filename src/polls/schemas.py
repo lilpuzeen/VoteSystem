@@ -2,6 +2,8 @@ import datetime
 
 from pydantic import BaseModel, constr, FutureDatetime
 
+# TODO: Response models
+
 
 class CreatePoll(BaseModel):
 	id: int
@@ -38,4 +40,3 @@ class ReadPoll(BaseModel):
 	title: str
 	description: str
 	questions: list[ReadQuestion]
-
