@@ -32,7 +32,6 @@ Then go to http://localhost:8000/docs to see the documentation and try the API.
 ## Project structure
 The project is structured as follows:
 ```
-.
 ├── VoteSystem
 │   ├── .github (contains github actions such as linters, in future will contain CI/CD pipeline)
 │   ├── alembic (contains database migrations)
@@ -49,6 +48,14 @@ The project is structured as follows:
 │   ├── etc.
 ```
 
+## Remaining tasks
+- Finalize some CRUD endpoints
+- Add tests with pytest (unit, integration, e2e)
+- Finalize Dockerfile and docker-compose.yml
+- Add aioredis for caching
+- slowapi for rate limiting
+- Add mkdocs for documentation generation and deploy it to github pages
+- Optional: add CORS middleware for frontend and deploy project to Heroku/Render
 
 ## Contributing
 
