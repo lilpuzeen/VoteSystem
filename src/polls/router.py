@@ -69,7 +69,8 @@ async def get_poll(poll_id: int, session: AsyncSession = Depends(get_async_sessi
 async def create_question(
         poll_id: int,
         new_question: schema.CreateQuestion,
-        session: AsyncSession = Depends(get_async_session)
+        session: AsyncSession = Depends(get_async_session),
+        current_user: UserRead = Depends(get_current_active_user)
 ):
     new_question_instance = model.Question(
         poll_id=poll_id,
@@ -88,7 +89,8 @@ async def get_question(question_id: int, session: AsyncSession = Depends(get_asy
 async def create_choice(
         question_id: int,
         new_choice: schema.CreateChoice,
-        session: AsyncSession = Depends(get_async_session)
+        session: AsyncSession = Depends(get_async_session),
+        current_user: UserRead = Depends(get_current_active_user)
 ):
     new_choice_instance = model.Choice(
         question_id=question_id,
