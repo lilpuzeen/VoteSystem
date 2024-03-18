@@ -111,7 +111,7 @@ async def create_question(
 
 @router_questions.put("/{question_id}")
 async def update_question(
-        updated_question: schema.CreateQuestion,
+        updated_question: schema.UpdateQuestion,
         question_id: int,
         session: AsyncSession = Depends(get_async_session),
         current_user: UserRead = Depends(get_current_active_user)
@@ -154,6 +154,27 @@ async def create_choice(
     return await choice_action.create(db=session, obj_in=new_choice_instance)
 
 
+@router_choices.put("/{choice_id}")
+async def update_choice(
+        updated_choice: schema.UpdateChoice,
+        choice_id: int,
+        session: AsyncSession = Depends(get_async_session),
+        current_user: UserRead = Depends(get_current_active_user)
+):
+    db_obj = await choice_action.get(db=session, id=choice_id)
+
+    return await choice_action.update(db=session, db_obj=db_obj, obj_in=updated_choice)
+
+
+@router_choices.delete("/{choice_id}")
+async def delete_choice(
+        choice_id: int,
+        session: AsyncSession = Depends(get_async_session),
+        current_user: UserRead = Depends(get_current_active_user)
+):
+    return await choice_action.remove(db=session, id=choice_id)
+
+
 # TODO: handle multiple votes from the same user on the same choice
 @router_votes.post("/{choice_id}")
 async def create_vote(
@@ -162,6 +183,9 @@ async def create_vote(
         session: AsyncSession = Depends(get_async_session),
         current_user: UserRead = Depends(get_current_active_user)
 ):
+    if new_vote.vote_ts.tzinfo is not None:
+        new_vote.vote_ts = new_vote.vote_ts.astimezone(pytz.utc).replace(tzinfo=None)
+
     new_vote_instance = model.Vote(
         choice_id=choice_id,
         user_id=current_user.id,
