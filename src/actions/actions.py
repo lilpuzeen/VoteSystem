@@ -11,7 +11,7 @@ from sqlalchemy.orm import selectinload
 from src.database import Base, get_async_session
 from src.auth.utils import map_to_datetime
 
-import src.actions.schemas as schema
+import src.polls.schemas as schema
 import src.polls.models as models
 
 ModelType = TypeVar("ModelType", bound=Base)
@@ -45,46 +45,6 @@ class BaseActions(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             obj = result.scalars().first()
             if obj:
                 return obj
-            else:
-                raise HTTPException(status_code=404, detail=f"Object with ID {id} not found.")
-
-    async def get_poll_with_questions(self, id: int, db: AsyncSession = Depends(get_async_session)) -> Optional[ModelType]:
-        async with db as session:
-            query = (
-                select(self.model)
-                .filter(self.model.id == id)
-                .options(
-                    selectinload(models.Poll.questions)
-                    .selectinload(models.Question.choices)
-                )
-            )
-            result = await session.execute(query)
-            obj = result.scalars().first()
-            if obj:
-                obj_data = jsonable_encoder(obj)
-
-                for question in obj_data["questions"]:
-                    question.pop("poll_id", None)
-                return obj_data
-            else:
-                raise HTTPException(status_code=404, detail=f"Object with ID {id} not found.")
-
-    async def get_question_with_choices(self, id: int, db: AsyncSession = Depends(get_async_session)) -> Optional[ModelType]:
-        async with db as session:
-            query = (
-                select(self.model)
-                .filter(self.model.id == id)
-                .options(
-                    selectinload(models.Question.choices)
-                )
-            )
-            result = await session.execute(query)
-            obj = result.scalars().first()
-            if obj:
-                obj_data = jsonable_encoder(obj)
-                question_data = obj_data
-                question_data.pop("poll_id", None)
-                return question_data
             else:
                 raise HTTPException(status_code=404, detail=f"Object with ID {id} not found.")
 
@@ -130,25 +90,84 @@ class BaseActions(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             raise HTTPException(status_code=404, detail=f"Object with ID {id} not found.")
 
 
-class PollActions(BaseActions[models.Poll, schema.PostCreate, schema.PostUpdate]):
+# TODO: Implement actions for other models
+class PollActions(BaseActions[models.Poll, schema.CreatePoll, schema.UpdatePoll]):
     """Poll actions with basic CRUD operations"""
 
-    pass
+    async def get(self,
+                  id: int,
+                  db: AsyncSession = Depends(get_async_session)) -> Optional[ModelType]:
+        async with db as session:
+            query = (
+                select(self.model)
+                .filter(self.model.id == id)
+                .options(
+                    selectinload(models.Poll.questions)
+                    .selectinload(models.Question.choices)
+                )
+            )
+            result = await session.execute(query)
+            obj = result.scalars().first()
+            if obj:
+                obj_data = jsonable_encoder(obj)
+
+                for question in obj_data["questions"]:
+                    question.pop("poll_id", None)
+                return obj_data
+            else:
+                raise HTTPException(status_code=404, detail=f"Object with ID {id} not found.")
+
+    async def get_all(self, *, skip: int = 0, limit: int = 100, db: AsyncSession = Depends(get_async_session)) -> list[ModelType]:
+        async with db as session:
+            query = (
+                select(self.model)
+                .options(
+                    selectinload(models.Poll.questions)
+                    .selectinload(models.Question.choices)
+                )
+            )
+            result = await session.execute(query)
+            obj = result.scalars().all()
+            if obj:
+                obj_data = jsonable_encoder(obj)
+                for poll in obj_data:
+                    for question in poll["questions"]:
+                        question.pop("poll_id", None)
+                return obj_data
+            else:
+                raise HTTPException(status_code=404, detail=f"Objects not found.")
 
 
-class QuestionActions(BaseActions[models.Question, schema.PostCreate, schema.PostUpdate]):
+class QuestionActions(BaseActions[models.Question, schema.CreateQuestion, schema.CreateQuestion]):
     """Question actions with basic CRUD operations"""
 
-    pass
+    async def get(self, id: int, db: AsyncSession = Depends(get_async_session)) -> Optional[ModelType]:
+        async with db as session:
+            query = (
+                select(self.model)
+                .filter(self.model.id == id)
+                .options(
+                    selectinload(models.Question.choices)
+                )
+            )
+            result = await session.execute(query)
+            obj = result.scalars().first()
+            if obj:
+                obj_data = jsonable_encoder(obj)
+                question_data = obj_data
+                question_data.pop("poll_id", None)
+                return question_data
+            else:
+                raise HTTPException(status_code=404, detail=f"Object with ID {id} not found.")
 
 
-class ChoiceActions(BaseActions[models.Choice, schema.PostCreate, schema.PostUpdate]):
+class ChoiceActions(BaseActions[models.Choice, schema.CreateChoice, schema.UpdateChoice]):
     """Choice actions with basic CRUD operations"""
 
     pass
 
 
-class VoteActions(BaseActions[models.Vote, schema.PostCreate, schema.PostUpdate]):
+class VoteActions(BaseActions[models.Vote, schema.CreateVote, schema.UpdateVote]):
     """Vote actions with basic CRUD operations"""
 
     pass

@@ -40,3 +40,21 @@ class ReadPoll(BaseModel):
 	title: str
 	description: str
 	questions: list[ReadQuestion]
+
+
+class UpdatePoll(BaseModel):
+	title: constr(min_length=5, max_length=60)
+	description: str
+	end_date: FutureDatetime  # 2024-03-09 18:56:03.085849
+
+
+class UpdateChoice(CreateChoice):
+	pass
+
+
+class UpdateQuestion(CreateQuestion):
+	pass
+
+
+class UpdateVote(BaseModel):
+	pass

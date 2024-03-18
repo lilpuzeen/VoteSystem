@@ -21,17 +21,17 @@ router_polls = APIRouter(
 
 router_questions = APIRouter(
     prefix="/questions",
-    tags=["Polls"]
+    tags=["Questions"]
 )
 
 router_choices = APIRouter(
     prefix="/choices",
-    tags=["Polls"]
+    tags=["Choices"]
 )
 
 router_votes = APIRouter(
     prefix="/votes",
-    tags=["Polls"]
+    tags=["Votes"]
 )
 
 
@@ -62,7 +62,36 @@ async def create_poll(
 
 @router_polls.get("/{poll_id}")
 async def get_poll(poll_id: int, session: AsyncSession = Depends(get_async_session)):
-    return await poll_action.get_poll_with_questions(db=session, id=poll_id)
+    return await poll_action.get(db=session, id=poll_id)
+
+
+@router_polls.get("")
+async def get_all_polls(session: AsyncSession = Depends(get_async_session)):
+    return await poll_action.get_all(db=session)
+
+
+@router_polls.put("/{poll_id}")
+async def update_poll(
+        updated_poll: schema.UpdatePoll,
+        poll_id: int,
+        session: AsyncSession = Depends(get_async_session),
+        current_user: UserRead = Depends(get_current_active_user)
+):
+    if updated_poll.end_date.tzinfo is not None:
+        updated_poll.end_date = updated_poll.end_date.astimezone(pytz.utc).replace(tzinfo=None)
+
+    db_obj = await poll_action.get(db=session, id=poll_id)
+
+    return await poll_action.update(db=session, db_obj=db_obj, obj_in=updated_poll)
+
+
+@router_polls.delete("/{poll_id}")
+async def delete_poll(
+        poll_id: int,
+        session: AsyncSession = Depends(get_async_session),
+        current_user: UserRead = Depends(get_current_active_user)
+):
+    return await poll_action.remove(db=session, id=poll_id)
 
 
 @router_questions.post("/{poll_id}")
@@ -80,9 +109,34 @@ async def create_question(
     return await question_action.create(db=session, obj_in=new_question_instance)
 
 
+@router_questions.put("/{question_id}")
+async def update_question(
+        updated_question: schema.CreateQuestion,
+        question_id: int,
+        session: AsyncSession = Depends(get_async_session),
+        current_user: UserRead = Depends(get_current_active_user)
+):
+    db_obj = await question_action.get(db=session, id=question_id)
+
+    return await question_action.update(db=session, db_obj=db_obj, obj_in=updated_question)
+
+
+@router_questions.delete("/{question_id}")
+async def delete_question(
+        question_id: int,
+        session: AsyncSession = Depends(get_async_session),
+        current_user: UserRead = Depends(get_current_active_user)
+):
+    return await question_action.remove(db=session, id=question_id)
+
+
 @router_questions.get("/{question_id}")
-async def get_question(question_id: int, session: AsyncSession = Depends(get_async_session)):
-    return await question_action.get_question_with_choices(db=session, id=question_id)
+async def get_question(
+        question_id: int,
+        session: AsyncSession = Depends(get_async_session),
+        current_user: UserRead = Depends(get_current_active_user)
+):
+    return await question_action.get(db=session, id=question_id)
 
 
 @router_choices.post("/{question_id}")
