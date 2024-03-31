@@ -1,7 +1,5 @@
 from uuid import uuid4
 
-from src.polls.router import get_current_active_user
-
 from fastapi import APIRouter, Depends, UploadFile, HTTPException, Response, status
 from loguru import logger
 
@@ -10,6 +8,8 @@ from botocore.exceptions import ClientError
 
 import pylibmagic
 import magic
+
+from src.polls.utils import get_current_active_user
 
 
 router_images = APIRouter(

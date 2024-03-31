@@ -6,16 +6,10 @@ from fastapi import Depends, HTTPException
 
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
-from sqlalchemy.orm import selectinload
 
 from src.database import Base, get_async_session
 from src.auth.utils import map_to_datetime
 
-import src.polls.schemas as schema
-import src.polls.models as models
-
-from src.polls.image.models import Image as ImageModel
-from src.polls.image.schemas import CreateImage, UpdateImage
 
 ModelType = TypeVar("ModelType", bound=Base)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
@@ -91,99 +85,3 @@ class BaseActions(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             return obj
         else:
             raise HTTPException(status_code=404, detail=f"Object with ID {id} not found.")
-
-
-# TODO: Implement actions for other models
-class PollActions(BaseActions[models.Poll, schema.CreatePoll, schema.UpdatePoll]):
-    """Poll actions with basic CRUD operations"""
-
-    async def get(self,
-                  id: int,
-                  db: AsyncSession = Depends(get_async_session)) -> Optional[ModelType]:
-        async with db as session:
-            query = (
-                select(self.model)
-                .filter(self.model.id == id)
-                .options(
-                    selectinload(models.Poll.questions)
-                    .selectinload(models.Question.choices)
-                )
-            )
-            result = await session.execute(query)
-            obj = result.scalars().first()
-            if obj:
-                obj_data = jsonable_encoder(obj)
-
-                for question in obj_data["questions"]:
-                    question.pop("poll_id", None)
-                return obj_data
-            else:
-                raise HTTPException(status_code=404, detail=f"Object with ID {id} not found.")
-
-    async def get_all(self, *, skip: int = 0, limit: int = 100, db: AsyncSession = Depends(get_async_session)) -> list[ModelType]:
-        async with db as session:
-            query = (
-                select(self.model)
-                .options(
-                    selectinload(models.Poll.questions)
-                    .selectinload(models.Question.choices)
-                )
-            )
-            result = await session.execute(query)
-            obj = result.scalars().all()
-            if obj:
-                obj_data = jsonable_encoder(obj)
-                for poll in obj_data:
-                    for question in poll["questions"]:
-                        question.pop("poll_id", None)
-                return obj_data
-            else:
-                raise HTTPException(status_code=404, detail=f"Objects not found.")
-
-
-class QuestionActions(BaseActions[models.Question, schema.CreateQuestion, schema.CreateQuestion]):
-    """Question actions with basic CRUD operations"""
-
-    async def get(self, id: int, db: AsyncSession = Depends(get_async_session)) -> Optional[ModelType]:
-        async with db as session:
-            query = (
-                select(self.model)
-                .filter(self.model.id == id)
-                .options(
-                    selectinload(models.Question.choices)
-                )
-            )
-            result = await session.execute(query)
-            obj = result.scalars().first()
-            if obj:
-                obj_data = jsonable_encoder(obj)
-                question_data = obj_data
-                question_data.pop("poll_id", None)
-                return question_data
-            else:
-                raise HTTPException(status_code=404, detail=f"Object with ID {id} not found.")
-
-
-class ChoiceActions(BaseActions[models.Choice, schema.CreateChoice, schema.UpdateChoice]):
-    """Choice actions with basic CRUD operations"""
-
-    pass
-
-
-class VoteActions(BaseActions[models.Vote, schema.CreateVote, schema.UpdateVote]):
-    """Vote actions with basic CRUD operations"""
-
-    pass
-
-
-class ImageActions(BaseActions[ImageModel, CreateImage, UpdateImage]):
-    """Image actions with basic CRUD operations"""
-
-    pass
-
-
-poll_action = PollActions(models.Poll)
-question_action = QuestionActions(models.Question)
-choice_action = QuestionActions(models.Choice)
-vote_action = QuestionActions(models.Vote)
-image_action = ImageActions(ImageModel)
