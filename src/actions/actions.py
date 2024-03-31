@@ -14,6 +14,9 @@ from src.auth.utils import map_to_datetime
 import src.polls.schemas as schema
 import src.polls.models as models
 
+from src.polls.image.models import Image as ImageModel
+from src.polls.image.schemas import CreateImage, UpdateImage
+
 ModelType = TypeVar("ModelType", bound=Base)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
 UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
@@ -173,7 +176,14 @@ class VoteActions(BaseActions[models.Vote, schema.CreateVote, schema.UpdateVote]
     pass
 
 
+class ImageActions(BaseActions[ImageModel, CreateImage, UpdateImage]):
+    """Image actions with basic CRUD operations"""
+
+    pass
+
+
 poll_action = PollActions(models.Poll)
 question_action = QuestionActions(models.Question)
 choice_action = QuestionActions(models.Choice)
 vote_action = QuestionActions(models.Vote)
+image_action = ImageActions(ImageModel)

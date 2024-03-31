@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from src.polls.router import router_polls, router_questions, router_choices, router_votes
+from src.polls.image.router import router_images
 from src.auth.base_config import fastapi_users, auth_backend
 from src.auth.schemas import UserCreate, UserRead
 
@@ -23,3 +24,4 @@ app.include_router(router_polls)
 app.include_router(router_questions)
 app.include_router(router_choices)
 app.include_router(router_votes)
+app.include_router(router_images)

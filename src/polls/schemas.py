@@ -1,6 +1,7 @@
 import datetime
 
 from pydantic import BaseModel, constr, FutureDatetime
+from fastapi import UploadFile
 
 # TODO: Response models
 
@@ -57,4 +58,4 @@ class UpdateQuestion(CreateQuestion):
 
 
 class UpdateVote(BaseModel):
-	pass
+	id: int
