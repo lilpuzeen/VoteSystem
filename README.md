@@ -51,12 +51,12 @@ The project is structured as follows:
 ## Remaining tasks
 - Finalize some CRUD endpoints
 - Add tests with pytest (unit, integration, e2e)
-- Finalize Dockerfile and docker-compose.yml
 - Add aioredis for caching
 - Slowapi for rate limiting
 - Celery for background tasks (i.e. sending emails)
 - Add mkdocs for documentation generation and deploy it to github pages
-- Optional: add CORS middleware for frontend and deploy project to Heroku/Render
+- Optional: add CORS middleware for frontend and deploy project to AWS EC2 / Lightsail / Beanstalk
+- Optional: AWS CloudFront for CDN
 
 ## Contributing
 
